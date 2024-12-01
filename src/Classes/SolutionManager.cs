@@ -15,8 +15,12 @@ namespace aoc_2024.Classes
 
         public void CreateInitialFiles(int dayToInitialize, string inputContent)
         {
-            CreateSolutionFile(dayToInitialize);
-            CreateTestsFile(dayToInitialize);
+            if (!this.IsDayAlreadyInitialized(dayToInitialize))
+            {
+                CreateSolutionFile(dayToInitialize);
+                CreateTestsFile(dayToInitialize);
+            }
+
             CreateInputFile(dayToInitialize, inputContent);
             this.availableSolutions = LoadAvailableSolutions();
         }

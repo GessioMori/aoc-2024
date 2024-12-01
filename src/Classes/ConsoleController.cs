@@ -190,7 +190,7 @@ namespace aoc_2024.Classes
 
             RunDay(dayToRun, partToRun);
         }
-        
+
         private void RunDay(int dayToRun, Part partToRun)
         {
             this.lastExecutionManager.WriteLastChoice(dayToRun, Mode.Run, partToRun);
@@ -334,13 +334,6 @@ namespace aoc_2024.Classes
             int dayToInitialize = AnsiConsole.Prompt(
                 new TextPrompt<int>("Day: "));
 
-            if (this.solutionManager.IsDayAlreadyInitialized(dayToInitialize))
-            {
-                this.logger.Log($"Day #{dayToInitialize} already initialized. Press any key to continue.", LogSeverity.Error);
-                Console.ReadKey();
-                return;
-            }
-
             Console.Clear();
             PrintHeader();
 
@@ -348,6 +341,12 @@ namespace aoc_2024.Classes
                 .Start($"Initializing day #{dayToInitialize}...", ctx =>
                 {
                     ctx.Spinner(Spinner.Known.Star2);
+
+                    if (this.solutionManager.IsDayAlreadyInitialized(dayToInitialize))
+                    {
+                        this.logger.Log($"Day #{dayToInitialize} has already a solution. Only the input will be fetched.", LogSeverity.Log);
+                    }
+
                     this.logger.Log("Getting puzzle input from AoC...", LogSeverity.Log);
                     ClientResponse input = this.aocClient.GetPuzzleInput(dayToInitialize).Result;
                     if (input.ResponseType == ClientResponseType.Success)
