@@ -56,7 +56,18 @@ namespace aoc_2024.Classes
 
         private static int[] LoadAvailableSolutions()
         {
-            return new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, @"..\..\..\Solutions"))
+            string? basePath = FileUtils.FindProjectFolder();
+
+            if (string.IsNullOrEmpty(basePath))
+            {
+                return [];
+            }
+
+            string solutionsPath = Path.Combine(basePath, "Solutions");
+
+            Directory.CreateDirectory(solutionsPath);
+
+            return new DirectoryInfo(solutionsPath)
                 .GetFiles("*.cs")
                 .Select(file => int.Parse(Path.GetFileNameWithoutExtension(file.Name).Replace("Solution", "")))
                 .OrderByDescending(x => x)

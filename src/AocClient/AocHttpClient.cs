@@ -7,9 +7,16 @@ namespace aoc_2024.AocClient
     {
         private readonly HttpClient httpClient;
         private readonly string? sessionCookie;
+        private readonly Dictionary<int, ClientResponse> inputCache;
+        private readonly Dictionary<int, DateTime> requestTimestamps;
+        private readonly TimeSpan throttleDuration;
 
         public AocHttpClient()
         {
+            this.inputCache = [];
+            this.requestTimestamps = [];
+            this.throttleDuration = TimeSpan.FromSeconds(15);
+
             this.sessionCookie = GetSessionCookie();
 
             CookieContainer cookieContainer = new();
@@ -26,10 +33,26 @@ namespace aoc_2024.AocClient
             {
                 BaseAddress = new Uri($"{Consts.baseUri}/{Consts.year}/")
             };
+
+            this.httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("gm-aoc-2024/1.0 (https://github.com/GessioMori/aoc-2024; gessiomori@protonmail.com)");
         }
 
         public async Task<ClientResponse> GetPuzzleInput(int dayNumber)
         {
+            if (this.inputCache.TryGetValue(dayNumber, out var cachedResponse))
+            {
+                return cachedResponse;
+            }
+
+            if (this.requestTimestamps.TryGetValue(dayNumber, out var lastRequestTime))
+            {
+                TimeSpan timeSinceLastRequest = DateTime.UtcNow - lastRequestTime;
+                if (timeSinceLastRequest < this.throttleDuration)
+                {
+                    await Task.Delay(this.throttleDuration - timeSinceLastRequest);
+                }
+            }
+
             if (string.IsNullOrEmpty(this.sessionCookie))
             {
                 return new ClientResponse
@@ -44,13 +67,22 @@ namespace aoc_2024.AocClient
 
             string content = await response.Content.ReadAsStringAsync();
 
-            return new ClientResponse
+            ClientResponse clientResponse = new()
             {
                 ResponseType = response.IsSuccessStatusCode ?
                     ClientResponseType.Success :
                     ClientResponseType.Failure,
                 Content = content
             };
+
+            if (response.IsSuccessStatusCode)
+            {
+                this.inputCache[dayNumber] = clientResponse;
+            }
+
+            this.requestTimestamps[dayNumber] = DateTime.UtcNow;
+
+            return clientResponse;
         }
 
         private static string? GetSessionCookie()

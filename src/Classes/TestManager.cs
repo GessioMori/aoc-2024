@@ -144,7 +144,11 @@ namespace aoc_2024.Classes
                 return [];
             }
 
-            return new DirectoryInfo(Path.Combine(basePath, "Tests"))
+            string testsPath = Path.Combine(basePath, "Tests");
+
+            Directory.CreateDirectory(testsPath);
+
+            return new DirectoryInfo(Path.Combine(testsPath))
                 .GetFiles("*.txt")
                 .Select(file => int.Parse(Path.GetFileNameWithoutExtension(file.Name).Replace("test-", "")))
                 .OrderByDescending(x => x)
