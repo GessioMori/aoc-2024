@@ -11,89 +11,126 @@
             return lines.Select(line => line.ToCharArray()).ToArray();
         }
 
-        public static string[] GetAllCharMatrixRows(char[][] matrix)
+        public static MatrixAxis[] GetAllCharMatrixRows(char[][] matrix)
         {
-            return matrix.Select(row => new string(row)).ToArray();
+            int numOfRows = matrix.Length;
+            int numOfColumns = matrix[0].Length;
+
+            MatrixAxis[] matrixRows = new MatrixAxis[numOfRows];
+
+            for (int i = 0; i < numOfRows; i++)
+            {
+                (int, int)[] positions = new (int, int)[numOfColumns];
+
+                for (int j = 0; j < numOfColumns; j++)
+                {
+                    positions[j] = (i, j);
+                }
+
+                matrixRows[i] = new MatrixAxis(new string(matrix[i]), positions);
+            }
+
+            return matrixRows;
         }
 
-        public static string[] GetAllCharMatrixColumns(char[][] matrix)
+        public static MatrixAxis[] GetAllCharMatrixColumns(char[][] matrix)
         {
-            int rows = matrix.Length;
-            int columns = matrix[0].Length;
+            int numOfRows = matrix.Length;
+            int numOfColumns = matrix[0].Length;
 
-            string[] result = new string[columns];
+            MatrixAxis[] matrixColumns = new MatrixAxis[numOfColumns];
 
-            for (int col = 0; col < columns; col++)
+            for (int i = 0; i < numOfColumns; i++)
             {
-                char[] column = new char[rows];
-                for (int row = 0; row < rows; row++)
+                (int, int)[] positions = new (int, int)[numOfRows];
+                char[] chars = new char[numOfRows];
+
+                for (int j = 0; j < numOfRows; j++)
                 {
-                    column[row] = matrix[row][col];
+                    positions[j] = (j, i);
+                    chars[j] = matrix[j][i];
                 }
-                result[col] = new string(column);
+
+                matrixColumns[i] = new MatrixAxis(new string(chars), positions);
             }
 
-            return result;
+            return matrixColumns;
         }
 
-        public static string[] GetAllCharMatrixNegativeDiagonals(char[][] matrix)
+        public static MatrixAxis[] GetAllCharMatrixNegativeDiagonals(char[][] matrix)
         {
-            int rows = matrix.Length;
-            int cols = matrix[0].Length;
+            int numOfRows = matrix.Length;
+            int numOfColumns = matrix[0].Length;
 
-            List<string> diagonals = [];
+            List<MatrixAxis> matrixDiagonals = [];
 
-            for (int startCol = cols - 1; startCol >= 0; startCol--)
+            for (int startCol = numOfColumns - 1; startCol >= 0; startCol--)
             {
-                List<char> diagonal = [];
-                for (int row = 0, col = startCol; row < rows && col < cols; row++, col++)
+                List<char> diagonalChars = [];
+                List<(int, int)> diagonalCoordinates = [];
+
+                for (int row = 0, col = startCol; row < numOfRows && col < numOfColumns; row++, col++)
                 {
-                    diagonal.Add(matrix[row][col]);
+                    diagonalChars.Add(matrix[row][col]);
+                    diagonalCoordinates.Add((row, col));
                 }
-                diagonals.Add(new string(diagonal.ToArray()));
+
+                matrixDiagonals.Add(new MatrixAxis(new string(diagonalChars.ToArray()), diagonalCoordinates.ToArray()));
             }
 
-            for (int startRow = 1; startRow < rows; startRow++)
+            for (int startRow = 1; startRow < numOfRows; startRow++)
             {
-                List<char> diagonal = [];
-                for (int row = startRow, col = 0; row < rows && col < cols; row++, col++)
+                List<char> diagonalChars = [];
+                List<(int, int)> diagonalCoordinates = [];
+
+                for (int row = startRow, col = 0; row < numOfRows && col < numOfColumns; row++, col++)
                 {
-                    diagonal.Add(matrix[row][col]);
+                    diagonalChars.Add(matrix[row][col]);
+                    diagonalCoordinates.Add((row, col));
                 }
-                diagonals.Add(new string(diagonal.ToArray()));
+
+                matrixDiagonals.Add(new MatrixAxis(new string(diagonalChars.ToArray()), diagonalCoordinates.ToArray()));
             }
 
-            return diagonals.ToArray();
+            return matrixDiagonals.ToArray();
         }
 
-        public static string[] GetAllCharMatrixPositiveDiagonals(char[][] matrix)
+        public static MatrixAxis[] GetAllCharMatrixPositiveDiagonals(char[][] matrix)
         {
-            int rows = matrix.Length;
-            int cols = matrix[0].Length;
+            int numOfRows = matrix.Length;
+            int numOfColumns = matrix[0].Length;
 
-            List<string> diagonals = [];
+            List<MatrixAxis> matrixDiagonals = [];
 
-            for (int startRow = 0; startRow < rows; startRow++)
+            for (int startRow = 0; startRow < numOfRows; startRow++)
             {
-                List<char> diagonal = [];
-                for (int row = startRow, col = 0; row >= 0 && col < cols; row--, col++)
+                List<char> diagonalChars = [];
+                List<(int, int)> diagonalCoordinates = [];
+
+                for (int row = startRow, col = 0; row >= 0 && col < numOfColumns; row--, col++)
                 {
-                    diagonal.Add(matrix[row][col]);
+                    diagonalChars.Add(matrix[row][col]);
+                    diagonalCoordinates.Add((row, col));
                 }
-                diagonals.Add(new string(diagonal.ToArray()));
+
+                matrixDiagonals.Add(new MatrixAxis(new string(diagonalChars.ToArray()), diagonalCoordinates.ToArray()));
             }
 
-            for (int startCol = 1; startCol < cols; startCol++)
+            for (int startCol = 1; startCol < numOfColumns; startCol++)
             {
-                List<char> diagonal = [];
-                for (int row = rows - 1, col = startCol; row >= 0 && col < cols; row--, col++)
+                List<char> diagonalChars = [];
+                List<(int, int)> diagonalCoordinates = [];
+
+                for (int row = numOfRows - 1, col = startCol; row >= 0 && col < numOfColumns; row--, col++)
                 {
-                    diagonal.Add(matrix[row][col]);
+                    diagonalChars.Add(matrix[row][col]);
+                    diagonalCoordinates.Add((row, col));
                 }
-                diagonals.Add(new string(diagonal.ToArray()));
+
+                matrixDiagonals.Add(new MatrixAxis(new string(diagonalChars.ToArray()), diagonalCoordinates.ToArray()));
             }
 
-            return diagonals.ToArray();
+            return matrixDiagonals.ToArray();
         }
 
         #endregion
