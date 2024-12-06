@@ -12,6 +12,7 @@ namespace aoc_2024
             ServiceProvider serviceProvider = new ServiceCollection()
                 .AddSingleton<ILogger, ConsoleLogger>()
                 .AddSingleton<ISolutionManager, SolutionManager>()
+                .AddSingleton<ISolutionChecker, SolutionChecker>()
                 .AddSingleton<ILastExecutionManager, LastExecutionManager>()
                 .AddSingleton<IAocClient, AocHttpClient>()
                 .AddSingleton<IRunner, ConsoleRunner>()

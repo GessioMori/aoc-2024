@@ -12,6 +12,7 @@
         Run,
         Test,
         Init,
+        Check,
         Exit
     }
 

@@ -12,13 +12,15 @@ namespace aoc_2024.Classes
         private readonly ISolutionManager solutionManager;
         private readonly ILastExecutionManager lastExecutionManager;
         private readonly ITestManager testManager;
+        private readonly ISolutionChecker solutionChecker;
 
         public ConsoleController(IRunner runner,
                                  IAocClient aocClient,
                                  ILogger logger,
                                  ISolutionManager solutionManager,
                                  ILastExecutionManager lastExecutionManager,
-                                 ITestManager testManager)
+                                 ITestManager testManager,
+                                 ISolutionChecker solutionChecker)
         {
             this.runner = runner;
             this.aocClient = aocClient;
@@ -26,6 +28,7 @@ namespace aoc_2024.Classes
             this.solutionManager = solutionManager;
             this.lastExecutionManager = lastExecutionManager;
             this.testManager = testManager;
+            this.solutionChecker = solutionChecker;
         }
 
         public void Run()
@@ -51,6 +54,9 @@ namespace aoc_2024.Classes
                         break;
                     case Mode.Repeat:
                         RunLastCommand();
+                        break;
+                    case Mode.Check:
+                        CheckSolutions();
                         break;
                     case Mode.Exit:
                         shouldExit = true;
@@ -117,7 +123,7 @@ namespace aoc_2024.Classes
 
         private Mode SelectMode()
         {
-            string[] baseChoices = new List<Mode> { Mode.Run, Mode.Test, Mode.Init, Mode.Exit }
+            string[] baseChoices = new List<Mode> { Mode.Run, Mode.Test, Mode.Init, Mode.Check, Mode.Exit }
                 .Select(m => m.ToString())
                 .ToArray();
 
@@ -148,6 +154,60 @@ namespace aoc_2024.Classes
                 .Title("[bold]Part selection[/]")
                 .AddChoices(Enum.GetValues<Part>())
                 );
+        }
+
+        private void CheckSolutions()
+        {
+            List<SolutionResult> results = this.solutionChecker.GetSolutionResults();
+
+            TableColumn[] columns = new List<string> { "Day", "Part", "Is Correct", "Time (ms)" }
+                .Select(s => new TableColumn(s))
+                .ToArray();
+
+            Table table = new Table().Centered();
+
+            AnsiConsole.Live(table)
+                .Start(ctx =>
+                {
+                    table.AddColumns(columns);
+                    ctx.Refresh();
+
+                    foreach (SolutionResult prevResult in results)
+                    {
+                        ISolution? solution = this.solutionManager.CreateSolutionInstance(prevResult.DayNumber);
+                        string input = this.solutionManager.ReadInputFile(prevResult.DayNumber);
+                        ExecutionResult? result = null;
+
+                        if (solution != null && !string.IsNullOrEmpty(input))
+                        {
+                            result = this.runner.Run(solution, prevResult.DayNumber, prevResult.Part, input);
+                        }
+
+                        if (result != null)
+                        {
+                            if (result.ResultType == ExecutionResultType.Success)
+                            {
+                                bool isCorrect = prevResult.Result == result.Result;
+
+                                table.AddRow(new Markup(prevResult.DayNumber.ToString()),
+                                    new Markup(prevResult.Part.ToString()),
+                                    isCorrect ? new Markup("[green]Yes[/]") : new Markup("[orange3]No[/]"),
+                                    new Markup(result.ElapsedTimeInMs.ToString()));
+                            }
+                            else
+                            {
+                                table.AddRow(new Markup(prevResult.DayNumber.ToString()),
+                                    new Markup(prevResult.Part.ToString()),
+                                    new Markup("[red]Error[/]"),
+                                    new Markup("0"));
+                            }
+                        }
+
+                        ctx.Refresh();
+                    }
+                });
+
+            Console.ReadKey();
         }
 
         private static Part SelectAvailableTestPart(TestCase testCase)
@@ -195,8 +255,6 @@ namespace aoc_2024.Classes
         {
             this.lastExecutionManager.WriteLastChoice(dayToRun, Mode.Run, partToRun);
 
-            AnsiConsole.WriteLine();
-
             ExecutionResult? result = null;
 
             AnsiConsole.Status()
@@ -219,16 +277,19 @@ namespace aoc_2024.Classes
             {
                 if (result.ResultType == ExecutionResultType.Success)
                 {
+                    this.solutionChecker.SaveDayResult(dayToRun, partToRun, result.Result);
+                    AnsiConsole.WriteLine();
+
                     this.logger.Log($"Day #{dayToRun} - Part {partToRun} successfully run!", LogSeverity.Runner);
                     this.logger.Log($"Result: {result.Result}", LogSeverity.Runner);
                     this.logger.Log($"Elapsed time: {result.ElapsedTimeInMs} ms", LogSeverity.Runner);
                 }
                 else
                 {
+                    AnsiConsole.WriteLine();
                     this.logger.Log($"Error runnning Day #{dayToRun} - Part {partToRun}:", LogSeverity.Error);
                     this.logger.Log(result.Result, LogSeverity.Other);
                 }
-
             }
             else
             {
