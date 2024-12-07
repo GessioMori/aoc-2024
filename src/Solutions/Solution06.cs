@@ -25,26 +25,33 @@ namespace aoc_2024.Solutions
             char[][] matrix = MatrixUtils.CreateCharMatrix(inputData);
 
             int totalObstacles = 0;
+            Lock lockObj = new();
 
-            for (int i = 0; i < matrix.Length; i++)
+            Parallel.For(0, matrix.Length, i =>
             {
-                for (int j = 0; j < matrix[i].Length; j++)
+                int localObstacles = 0;
+
+                Parallel.For(0, matrix[i].Length, j =>
                 {
                     if (matrix[i][j] == '.')
                     {
-                        matrix[i][j] = '#';
+                        char[][] matrixCopy = matrix.Select(row => row.ToArray()).ToArray();
+                        matrixCopy[i][j] = '#';
 
                         HashSet<(int, int, int)> visited = [];
 
-                        if (RunMap(matrix, visited, true))
+                        if (RunMap(matrixCopy, visited, true))
                         {
-                            totalObstacles++;
+                            Interlocked.Increment(ref localObstacles);
                         }
-
-                        matrix[i][j] = '.';
                     }
+                });
+
+                lock (lockObj)
+                {
+                    totalObstacles += localObstacles;
                 }
-            }
+            });
 
             return totalObstacles.ToString();
         }
