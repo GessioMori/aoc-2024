@@ -17,6 +17,18 @@ namespace aoc_2024.Classes
 
         public List<SolutionResult> GetSolutionResults()
         {
+            this.results.Sort((x, y) =>
+            {
+                int dayComparison = x.DayNumber.CompareTo(y.DayNumber);
+
+                if (dayComparison != 0)
+                {
+                    return dayComparison;
+                }
+
+                return x.Part.CompareTo(y.Part);
+            });
+
             return this.results;
         }
 
@@ -131,18 +143,6 @@ namespace aoc_2024.Classes
                 this.logger.Log($"Failed to load results: {ex.Message}", LogSeverity.Error);
                 this.results.Clear();
             }
-
-            results.Sort((x, y) =>
-            {
-                int dayComparison = x.DayNumber.CompareTo(y.DayNumber);
-
-                if (dayComparison != 0)
-                {
-                    return dayComparison;
-                }
-
-                return x.Part.CompareTo(y.Part);
-            });
         }
     }
 }

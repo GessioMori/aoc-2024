@@ -165,15 +165,28 @@ namespace aoc_2024.Classes
                 .ToArray();
 
             Table table = new Table().Centered();
+            table.Border = TableBorder.Rounded;
+            table.ShowRowSeparators = true;
 
             AnsiConsole.Live(table)
                 .Start(ctx =>
                 {
                     table.AddColumns(columns);
-                    ctx.Refresh();
 
                     foreach (SolutionResult prevResult in results)
                     {
+                        table.AddRow(new Markup(prevResult.DayNumber.ToString()),
+                                    new Markup(prevResult.Part.ToString()),
+                                    new Markup("[dodgerblue3]Running[/]"),
+                                    new Markup("0"));
+
+                        ctx.Refresh();
+                    }
+
+                    Parallel.For(0, results.Count, i =>
+                    {
+                        SolutionResult prevResult = results[i];
+
                         ISolution? solution = this.solutionManager.CreateSolutionInstance(prevResult.DayNumber);
                         string input = this.solutionManager.ReadInputFile(prevResult.DayNumber);
                         ExecutionResult? result = null;
@@ -187,24 +200,20 @@ namespace aoc_2024.Classes
                         {
                             if (result.ResultType == ExecutionResultType.Success)
                             {
-                                bool isCorrect = prevResult.Result == result.Result;
-
-                                table.AddRow(new Markup(prevResult.DayNumber.ToString()),
-                                    new Markup(prevResult.Part.ToString()),
-                                    isCorrect ? new Markup("[green]Yes[/]") : new Markup("[orange3]No[/]"),
-                                    new Markup(result.ElapsedTimeInMs.ToString()));
+                                table.Rows.Update(i, 2, prevResult.Result == result.Result ?
+                                    new Markup("[green]Yes[/]") :
+                                    new Markup("[orange3]No[/]"));
+                                table.Rows.Update(i, 3, new Markup(result.ElapsedTimeInMs.ToString()));
                             }
                             else
                             {
-                                table.AddRow(new Markup(prevResult.DayNumber.ToString()),
-                                    new Markup(prevResult.Part.ToString()),
-                                    new Markup("[red]Error[/]"),
-                                    new Markup("0"));
+                                table.Rows.Update(i, 2, new Markup("[red]Error[/]"));
+                                table.Rows.Update(i, 3, new Markup("-"));
                             }
                         }
 
                         ctx.Refresh();
-                    }
+                    });
                 });
 
             Console.ReadKey();
