@@ -1,7 +1,40 @@
-﻿namespace aoc_2024.SolutionUtils
+﻿using Spectre.Console;
+
+namespace aoc_2024.SolutionUtils
 {
     public static class MatrixUtils
     {
+        #region IntMatrix
+
+        private static (int, int)[] orthogonalNeighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
+        public static int[][] CreateIntMatrix(string textBlock)
+        {
+            string[] lines = ParseUtils.ParseIntoLines(textBlock);
+
+            return lines.Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
+        }
+
+        public static (int, int)[] GetIntOrthogonalNeighbors(int[][] matrix, (int x, int y) position)
+        {
+            List<(int, int)> neighbors = [];
+
+            foreach (var (dr, dc) in orthogonalNeighbors)
+            {
+                int newRow = position.x + dr;
+                int newCol = position.y + dc;
+
+                if (newRow >= 0 && newRow < matrix.Length && newCol >= 0 && newCol < matrix[newRow].Length)
+                {
+                    neighbors.Add((newRow, newCol));
+                }
+            }
+
+            return neighbors.ToArray();
+        }
+
+        #endregion
+
         #region CharMatrix
 
         public static char[][] CreateCharMatrix(string textBlock)
