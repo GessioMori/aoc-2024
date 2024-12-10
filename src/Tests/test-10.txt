@@ -3,7 +3,7 @@ TestNumber=
 AnswerA=
 36
 AnswerB=
-[Empty]
+81
 Input=
 89010123
 78121874

@@ -7,6 +7,16 @@ namespace aoc_2024.Solutions
     {
         public string RunPartA(string inputData)
         {
+            return RunMap(inputData, true).ToString();
+        }
+
+        public string RunPartB(string inputData)
+        {
+            return RunMap(inputData, false).ToString();
+        }
+
+        private static long RunMap(string inputData, bool shouldCountUniqueEnds)
+        {
             int[][] map = MatrixUtils.CreateIntMatrix(inputData);
 
             (int, int)[] trailheads = GetTrailheads(map);
@@ -15,33 +25,43 @@ namespace aoc_2024.Solutions
 
             foreach ((int, int) trailhead in trailheads)
             {
-                totalScore += GetTrailheadScore(trailhead, map);
+                totalScore += GetTrailheadScore(trailhead, map, shouldCountUniqueEnds);
             }
 
-            return totalScore.ToString();
+            return totalScore;
         }
 
-        public string RunPartB(string inputData)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static int GetTrailheadScore((int, int) trailhead, int[][] map)
+        private static int GetTrailheadScore((int x, int y) trailhead, int[][] map, bool shouldCountUniqueEnds)
         {
             int score = 0;
 
             Queue<(int, int)> candidates = [];
-            HashSet<(int, int)> visited = [];
+            HashSet<(int x, int y)> visited = [];
 
             candidates.Enqueue(trailhead);
 
             while (candidates.Count > 0)
             {
-                (int, int) tile = candidates.Dequeue();
+                (int x, int y) tile = candidates.Dequeue();
+                visited.Add(tile);
 
-                foreach ((int, int) neighbor in MatrixUtils.GetIntOrthogonalNeighbors(map, tile))
+                foreach ((int x, int y) neighbor in MatrixUtils.GetIntOrthogonalNeighbors(map, tile))
                 {
-                    Console.WriteLine(neighbor);
+                    if (!visited.Contains(neighbor) &&
+                        map[neighbor.x][neighbor.y] == map[tile.x][tile.y] + 1)
+                    {
+                        if (shouldCountUniqueEnds)
+                        {
+                            visited.Add(neighbor);
+                        }
+
+                        if (map[neighbor.x][neighbor.y] == 9)
+                        {
+                            score++;
+                        }
+
+                        candidates.Enqueue(neighbor);
+                    }
                 }
             }
 
@@ -65,41 +85,5 @@ namespace aoc_2024.Solutions
 
             return trailheads.ToArray();
         }
-
-        //private (int, int)[] GetTrailheads(int[][] map)
-        //{
-        //    List<(int, int)> trailheads = [];
-
-        //    int numOfRows = map.Length;
-        //    int numOfCols = map[0].Length;
-
-        //    for (int i = 0; i < numOfRows; i++)
-        //    {
-        //        if (map[i][0] == 0)
-        //        {
-        //            trailheads.Add((i, 0));
-        //        }
-
-        //        if (map[i][numOfCols - 1] == 0)
-        //        {
-        //            trailheads.Add((i, numOfCols - 1));
-        //        }
-        //    }
-
-        //    for (int i = 0; i < numOfCols; i++)
-        //    {
-        //        if (map[0][i] == 0)
-        //        {
-        //            trailheads.Add((0, i));
-        //        }
-
-        //        if (map[numOfRows - 1][i] == 0)
-        //        {
-        //            trailheads.Add((numOfRows - 1, i));
-        //        }
-        //    }
-
-        //    return trailheads.ToArray();
-        //}
     }
 }
