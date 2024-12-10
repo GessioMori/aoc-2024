@@ -1,5 +1,4 @@
 using aoc_2024.Interfaces;
-using aoc_2024.SolutionUtils;
 
 namespace aoc_2024.Solutions
 {
@@ -34,14 +33,18 @@ namespace aoc_2024.Solutions
         public string RunPartB(string inputData)
         {
             List<int> disk = GetDiskList(inputData);
+            List<int>[] emptySpaces = GetEmptySpaces(disk);
+            HashSet<int> movedFiles = [];
 
-            int firstEmptyIndex = disk.FindIndex(p => p == -1);
+            int firstEmptyIndex = emptySpaces
+                .Where(l => l.Count != 0)
+                .Min(l => l[0]);
 
-            for (int i = disk.Count - 1; i >= 0 && firstEmptyIndex < i; i--)
+            for (int i = disk.Count - 1; i >= 0; i--)
             {
-                if (disk[i] == -1) continue;
-
                 int fileId = disk[i];
+                if (fileId == -1 || movedFiles.Contains(fileId)) continue;
+
                 int fileSize = 0;
 
                 while (i - fileSize >= 0 && disk[i - fileSize] == fileId)
@@ -49,29 +52,55 @@ namespace aoc_2024.Solutions
                     fileSize++;
                 }
 
-                int emptySpace = 0;
-                int firstEmptyIndexAvailable = firstEmptyIndex;
+                firstEmptyIndex = emptySpaces
+                    .Where(l => l.Count != 0)
+                    .Min(l => l[0]);
 
-                for (int j = firstEmptyIndex; j <= i - fileSize && emptySpace < fileSize; j++)
+                if (i <= firstEmptyIndex)
                 {
-                    if (disk[j] == -1 && emptySpace == 0)
-                    {
-                        firstEmptyIndexAvailable = j;
-                    }
-
-                    emptySpace = disk[j] != -1 ? 0 : emptySpace + 1;
+                    break;
                 }
 
-                if (emptySpace == fileSize)
+                int minIndex = int.MaxValue;
+                int emptySize = -1;
+
+                for (int j = fileSize - 1; j < emptySpaces.Length; j++)
+                {
+                    if (emptySpaces[j].Count > 0 && emptySpaces[j][0] < minIndex)
+                    {
+                        minIndex = emptySpaces[j][0];
+                        emptySize = j + 1;
+                    }
+                }
+
+                if (emptySize > 0)
                 {
                     for (int j = 0; j < fileSize; j++)
                     {
-                        disk[firstEmptyIndexAvailable + j] = fileId;
+                        disk[minIndex + j] = fileId;
                         disk[i - j] = -1;
                     }
+
+                    emptySpaces[emptySize - 1].RemoveAt(0);
+
+                    if (fileSize < emptySize)
+                    {
+                        int index = emptySpaces[emptySize - fileSize - 1].BinarySearch(minIndex + fileSize);
+                        if (index < 0)
+                        {
+                            index = ~index;
+                        }
+
+                        emptySpaces[emptySize - fileSize - 1].Insert(index, minIndex + fileSize);
+                    }
+
+                    movedFiles.Add(fileId);
                 }
 
-                firstEmptyIndex = disk.FindIndex(p => p == -1);
+                //firstEmptyIndex = emptySpaces
+                //    .Where(l => l.Count != 0)
+                //    .Min(l => l[0]);
+
                 i -= fileSize - 1;
             }
 
@@ -99,7 +128,7 @@ namespace aoc_2024.Solutions
 
             List<int> disk = [];
 
-            int[] partValues = ParseUtils.ParseIntoLines(inputData)[0]
+            int[] partValues = inputData.Trim()
                 .Select(c => int.Parse(c.ToString()))
                 .ToArray();
 
@@ -117,6 +146,33 @@ namespace aoc_2024.Solutions
             }
 
             return disk;
+        }
+
+        private static List<int>[] GetEmptySpaces(List<int> disk)
+        {
+            List<int>[] emptySpaces = new List<int>[9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                emptySpaces[i] = [];
+            }
+
+            int emptyCount = 0;
+
+            for (int i = 0; i < disk.Count; i++)
+            {
+                if (disk[i] == -1)
+                {
+                    emptyCount++;
+                }
+                else if (emptyCount != 0)
+                {
+                    emptySpaces[emptyCount - 1].Add(i - emptyCount);
+                    emptyCount = 0;
+                }
+            }
+
+            return emptySpaces;
         }
     }
 }
