@@ -36,10 +36,6 @@ namespace aoc_2024.Solutions
             List<int>[] emptySpaces = GetEmptySpaces(disk);
             HashSet<int> movedFiles = [];
 
-            int firstEmptyIndex = emptySpaces
-                .Where(l => l.Count != 0)
-                .Min(l => l[0]);
-
             for (int i = disk.Count - 1; i >= 0; i--)
             {
                 int fileId = disk[i];
@@ -52,14 +48,11 @@ namespace aoc_2024.Solutions
                     fileSize++;
                 }
 
-                firstEmptyIndex = emptySpaces
+                int firstEmptyIndex = emptySpaces
                     .Where(l => l.Count != 0)
                     .Min(l => l[0]);
 
-                if (i <= firstEmptyIndex)
-                {
-                    break;
-                }
+                if (i <= firstEmptyIndex) break;
 
                 int minIndex = int.MaxValue;
                 int emptySize = -1;
@@ -73,7 +66,7 @@ namespace aoc_2024.Solutions
                     }
                 }
 
-                if (emptySize > 0)
+                if (emptySize > 0 && minIndex < i)
                 {
                     for (int j = 0; j < fileSize; j++)
                     {
@@ -96,10 +89,6 @@ namespace aoc_2024.Solutions
 
                     movedFiles.Add(fileId);
                 }
-
-                //firstEmptyIndex = emptySpaces
-                //    .Where(l => l.Count != 0)
-                //    .Min(l => l[0]);
 
                 i -= fileSize - 1;
             }
