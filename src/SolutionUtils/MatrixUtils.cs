@@ -15,7 +15,7 @@ namespace aoc_2024.SolutionUtils
             return lines.Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
         }
 
-        public static (int, int)[] GetIntOrthogonalNeighbors(int[][] matrix, (int x, int y) position)
+        public static (int, int)[] GetOrthogonalNeighbors<T>(T[][] matrix, (int x, int y) position)
         {
             List<(int, int)> neighbors = [];
 

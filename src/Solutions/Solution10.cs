@@ -45,7 +45,7 @@ namespace aoc_2024.Solutions
                 (int x, int y) tile = candidates.Dequeue();
                 visited.Add(tile);
 
-                foreach ((int x, int y) neighbor in MatrixUtils.GetIntOrthogonalNeighbors(map, tile))
+                foreach ((int x, int y) neighbor in MatrixUtils.GetOrthogonalNeighbors(map, tile))
                 {
                     if (!visited.Contains(neighbor) &&
                         map[neighbor.x][neighbor.y] == map[tile.x][tile.y] + 1)
