@@ -5,115 +5,109 @@ namespace aoc_2024.Solutions
 {
     public class Solution12 : ISolution
     {
+        private char[][] matrix = null!;
+        private List<CropRegion> cropRegions = [];
+        private Dictionary<int, int> uniqueEntrances = [];
+        private Dictionary<int, int> uniqueExits = [];
+        private Dictionary<int, HashSet<(int, int)>> visitedEntrances = [];
+        private Dictionary<int, HashSet<(int, int)>> visitedExits = [];
+
         public string RunPartA(string inputData)
         {
-            char[][] matrix = MatrixUtils.CreateCharMatrix(inputData);
-            List<CropRegion> regions = GetRegions(matrix);
+            this.matrix = MatrixUtils.CreateCharMatrix(inputData);
+            this.cropRegions = GetRegions(matrix);
 
-            return regions.Sum(region => region.Perimeter * region.Area).ToString();
+            return this.cropRegions.Sum(region => region.Perimeter * region.Area).ToString();
         }
 
         public string RunPartB(string inputData)
         {
-            char[][] matrix = MatrixUtils.CreateCharMatrix(inputData);
-            List<CropRegion> regions = GetRegions(matrix);
+            this.matrix = MatrixUtils.CreateCharMatrix(inputData);
+            this.cropRegions = GetRegions(matrix);
 
-            Dictionary<int, int> entrancesX = [];
-            Dictionary<int, int> exitsX = [];
-            Dictionary<int, HashSet<(int, int)>> visitedEntrancesX = [];
-            Dictionary<int, HashSet<(int, int)>> visitedExitsX = [];
+            InitializeRegionData();
 
-            foreach (CropRegion region in regions)
+            ProcessMatrix(isHorizontal: true);
+
+            foreach (CropRegion region in this.cropRegions)
             {
-                entrancesX[region.Id] = 0;
-                exitsX[region.Id] = 0;
-                visitedEntrancesX[region.Id] = [];
-                visitedExitsX[region.Id] = [];
+                region.Sides += this.uniqueEntrances[region.Id] + this.uniqueExits[region.Id];
             }
 
-            for (int i = 0; i < matrix.Length; i++)
+            InitializeRegionData();
+
+            ProcessMatrix(isHorizontal: false);
+
+            foreach (CropRegion region in this.cropRegions)
+            {
+                region.Sides += this.uniqueEntrances[region.Id] + this.uniqueExits[region.Id];
+            }
+
+            return this.cropRegions.Sum(region => region.Sides * region.Area).ToString();
+        }
+
+        private void InitializeRegionData()
+        {
+            this.uniqueEntrances = this.cropRegions.ToDictionary(region => region.Id, _ => 0);
+            this.uniqueExits = this.cropRegions.ToDictionary(region => region.Id, _ => 0);
+            this.visitedEntrances = this.cropRegions.ToDictionary(region => region.Id, _ => new HashSet<(int, int)>());
+            this.visitedExits = this.cropRegions.ToDictionary(region => region.Id, _ => new HashSet<(int, int)>());
+        }
+
+        private void ProcessMatrix(bool isHorizontal)
+        {
+            int outerLength = isHorizontal ? this.matrix.Length : this.matrix[0].Length;
+            int innerLength = isHorizontal ? this.matrix[0].Length : this.matrix.Length;
+
+            for (int outer = 0; outer < outerLength; outer++)
             {
                 int currentRegion = -1;
 
-                for (int j = 0; j < matrix[i].Length; j++)
+                for (int inner = 0; inner < innerLength; inner++)
                 {
-                    CropRegion region = regions.First(r => r.Tiles.Contains((i, j)));
+                    int i = isHorizontal ? outer : inner;
+                    int j = isHorizontal ? inner : outer;
+
+                    CropRegion region = this.cropRegions.First(r => r.Tiles.Contains((i, j)));
 
                     if (currentRegion != region.Id)
                     {
-                        visitedEntrancesX[region.Id].Add((i, j));
-
-                        if (!visitedEntrancesX[region.Id].Contains((i - 1, j)) && !visitedEntrancesX[region.Id].Contains((i + 1, j)))
+                        visitedEntrances[region.Id].Add((i, j));
+                        if (!HasAdjacentVisit(visitedEntrances[region.Id], i, j, isHorizontal))
                         {
-                            entrancesX[region.Id]++;
+                            this.uniqueEntrances[region.Id]++;
                         }
                     }
 
-                    if (j + 1 == matrix[i].Length || matrix[i][j + 1] != region.Type)
+                    if (IsExit(i, j, region.Type, isHorizontal))
                     {
-                        visitedExitsX[region.Id].Add((i, j));
-
-                        if (!visitedExitsX[region.Id].Contains((i - 1, j)) && !visitedExitsX[region.Id].Contains((i + 1, j)))
+                        visitedExits[region.Id].Add((i, j));
+                        if (!HasAdjacentVisit(visitedExits[region.Id], i, j, isHorizontal))
                         {
-                            exitsX[region.Id]++;
+                            this.uniqueExits[region.Id]++;
                         }
                     }
 
                     currentRegion = region.Id;
                 }
             }
+        }
 
-            Dictionary<int, int> entrancesY = [];
-            Dictionary<int, int> exitsY = [];
-            Dictionary<int, HashSet<(int, int)>> visitedEntrancesY = [];
-            Dictionary<int, HashSet<(int, int)>> visitedExitsY = [];
-
-            foreach (CropRegion region in regions)
+        private bool IsExit(int i, int j, char regionType, bool horizontal)
+        {
+            if (horizontal)
             {
-                entrancesY[region.Id] = 0;
-                exitsY[region.Id] = 0;
-                visitedEntrancesY[region.Id] = [];
-                visitedExitsY[region.Id] = [];
+                return j + 1 == this.matrix[0].Length || this.matrix[i][j + 1] != regionType;
             }
 
-            for (int j = 0; j < matrix[0].Length; j++)
-            {
-                int currentRegion = -1;
+            return i + 1 == this.matrix.Length || this.matrix[i + 1][j] != regionType;
+        }
 
-                for (int i = 0; i < matrix.Length; i++)
-                {
-                    CropRegion region = regions.First(r => r.Tiles.Contains((i, j)));
-
-                    if (currentRegion != region.Id)
-                    {
-                        visitedEntrancesY[region.Id].Add((i, j));
-
-                        if (!visitedEntrancesY[region.Id].Contains((i, j - 1)) && !visitedEntrancesX[region.Id].Contains((i, j + 1)))
-                        {
-                            entrancesY[region.Id]++;
-                        }
-                    }
-
-                    if (i + 1 == matrix.Length || matrix[i + 1][j] != region.Type)
-                    {
-                        visitedExitsY[region.Id].Add((i, j));
-
-                        if (!visitedExitsY[region.Id].Contains((i, j - 1)) && !visitedExitsY[region.Id].Contains((i, j + 1)))
-                        {
-                            exitsY[region.Id]++;
-                        }
-                    }
-
-                    currentRegion = region.Id;
-                }
-            }
-
-            foreach (CropRegion region in regions)
-            {
-                region.Sides = entrancesX[region.Id] + entrancesY[region.Id] + exitsX[region.Id] + exitsY[region.Id];
-            }
-
-            return regions.Sum(region => region.Sides * region.Area).ToString();
+        private static bool HasAdjacentVisit(HashSet<(int, int)> visited, int i, int j, bool horizontal)
+        {
+            return horizontal
+                ? visited.Contains((i - 1, j)) || visited.Contains((i + 1, j))
+                : visited.Contains((i, j - 1)) || visited.Contains((i, j + 1));
         }
 
         private static List<CropRegion> GetRegions(char[][] matrix)
