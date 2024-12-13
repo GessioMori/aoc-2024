@@ -3,7 +3,7 @@ TestNumber=
 AnswerA=
 1930
 AnswerB=
-[Empty]
+1206
 Input=
 RRRRIICCFF
 RRRRIICCCF
