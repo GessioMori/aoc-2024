@@ -11,6 +11,7 @@ namespace aoc_2024.Solutions
         private Dictionary<int, int> uniqueExits = [];
         private Dictionary<int, HashSet<(int, int)>> visitedEntrances = [];
         private Dictionary<int, HashSet<(int, int)>> visitedExits = [];
+        private Dictionary<(int, int), CropRegion> tilesPerRegion = [];
 
         public string RunPartA(string inputData)
         {
@@ -24,6 +25,14 @@ namespace aoc_2024.Solutions
         {
             this.matrix = MatrixUtils.CreateCharMatrix(inputData);
             this.cropRegions = GetRegions(matrix);
+
+            foreach (CropRegion region in this.cropRegions)
+            {
+                foreach ((int, int) tile in region.Tiles)
+                {
+                    this.tilesPerRegion[tile] = region;
+                }
+            }
 
             InitializeRegionData();
 
@@ -68,7 +77,7 @@ namespace aoc_2024.Solutions
                     int i = isHorizontal ? outer : inner;
                     int j = isHorizontal ? inner : outer;
 
-                    CropRegion region = this.cropRegions.First(r => r.Tiles.Contains((i, j)));
+                    CropRegion region = tilesPerRegion[(i, j)];
 
                     if (currentRegion != region.Id)
                     {
