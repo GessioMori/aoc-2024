@@ -6,6 +6,7 @@ namespace aoc_2024.Classes
     {
         private readonly ILogger logger;
         private readonly int[] availableTests;
+        private static readonly string[] keywords = ["TestNumber=", "AnswerA=", "AnswerB=", "Input="];
 
         public TestManager(ILogger logger)
         {
@@ -47,7 +48,7 @@ namespace aoc_2024.Classes
                     continue;
                 }
 
-                if (line.Contains('='))
+                if (keywords.Any(line.Contains))
                 {
                     string[] parts = line.Split('=', 2);
                     currentKey = parts[0].Trim();
