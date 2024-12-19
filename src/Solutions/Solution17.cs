@@ -11,9 +11,9 @@ namespace aoc_2024.Solutions
 
             Computer computer = new(a, b, c, program);
 
-            List<int> results = [];
+            List<long> results = [];
 
-            int? result = -1;
+            long? result = -1;
 
             while (result.HasValue)
             {
@@ -30,7 +30,13 @@ namespace aoc_2024.Solutions
 
         public string RunPartB(string inputData)
         {
-            throw new NotImplementedException();
+            (int _, int _, int _, int[] program) = ParseInput(inputData);
+
+            Computer computer = new(0, 0, 0, program);
+
+            long? result = computer.RecursiveAValue(0, program.Length - 1);
+
+            return result.HasValue ? result.Value.ToString() : "No solution found";
         }
 
         private static (int a, int b, int c, int[] program) ParseInput(string inputData)
@@ -61,13 +67,13 @@ namespace aoc_2024.Solutions
 
     public class Computer
     {
-        private int aRegister;
-        private int bRegister;
-        private int cRegister;
-        private int[] program;
+        private long aRegister;
+        private long bRegister;
+        private long cRegister;
+        private readonly int[] program;
         private int currentPosition;
 
-        public Computer(int aRegister, int bRegister, int cRegister, int[] program)
+        public Computer(long aRegister, int bRegister, int cRegister, int[] program)
         {
             this.aRegister = aRegister;
             this.bRegister = bRegister;
@@ -76,7 +82,7 @@ namespace aoc_2024.Solutions
             this.currentPosition = 0;
         }
 
-        public int? Run()
+        public long? Run()
         {
             if (this.currentPosition >= this.program.Length)
             {
@@ -114,7 +120,7 @@ namespace aoc_2024.Solutions
                     this.currentPosition += 2;
                     break;
                 case 5:
-                    int returnValue = GetComboOperandValue(this.program[this.currentPosition + 1]) % 8;
+                    long returnValue = GetComboOperandValue(this.program[this.currentPosition + 1]) % 8;
                     this.currentPosition += 2;
                     return returnValue;
                 case 6:
@@ -132,7 +138,33 @@ namespace aoc_2024.Solutions
             return -1;
         }
 
-        private int GetComboOperandValue(int operand)
+        public long? RecursiveAValue(long currentResult, int currentIndex)
+        {
+            if (currentIndex < 0)
+            {
+                return currentResult;
+            }
+
+            for (int b = 0; b < 8; b++)
+            {
+                long curB = b;
+                long a = (long)(currentResult * 8) + curB;
+                curB ^= 2;
+                long c = (long)(a / Math.Pow(2, curB));
+                curB ^= 3;
+                curB ^= c;
+                if (curB % 8 == this.program[currentIndex])
+                {
+                    long? subAnswer = RecursiveAValue(a, currentIndex - 1);
+                    if (!subAnswer.HasValue) continue;
+                    return subAnswer;
+                }
+            }
+
+            return null;
+        }
+
+        private long GetComboOperandValue(int operand)
         {
             return operand switch
             {
