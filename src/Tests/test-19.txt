@@ -1,0 +1,19 @@
+TestNumber=
+1
+AnswerA=
+6
+AnswerB=
+16
+Input=
+r, wr, b, g, bwu, rb, gb, br
+
+brwrr
+bggr
+gbbr
+rrbgbr
+ubwu
+bwurrg
+brgr
+bbrgwb
+
+================================
